@@ -1,0 +1,52 @@
+{
+  "users": [
+    {
+      "firstName": "Vikram",
+      "lastName": "Verma",
+      "age": 44,
+      "email": "rahul882@rediffmail.com",
+      "password": "123",
+      "bankAccount": "5042696632050845",
+      "panCard": "YMESS0089P",
+      "aadhaarCard": "731636873360",
+      "workerId": "SWI39681",
+      "registeredAt": "2026-03-19T19:40:04.842555"
+    },
+    {
+      "firstName": "Sneha",
+      "lastName": "Reddy",
+      "age": 22,
+      "email": "rahul613@rediffmail.com",
+      "password": "123",
+      "bankAccount": "6071743649548082",
+      "panCard": "WZCUC5984A",
+      "aadhaarCard": "909844480383",
+      "workerId": "AMA70620",
+      "registeredAt": "2026-03-19T19:57:55.987656"
+    },
+    {
+      "firstName": "Pooja",
+      "lastName": "Joshi",
+      "age": 44,
+      "email": "rahul318@yahoo.com",
+      "password": "123",
+      "bankAccount": "6740399973218657",
+      "panCard": "ELDHB4435L",
+      "aadhaarCard": "574430496639",
+      "workerId": "AMA89606",
+      "registeredAt": "2026-03-19T20:08:37.501383"
+    },
+    {
+      "firstName": "Vikram",
+      "lastName": "Verma",
+      "age": 43,
+      "email": "neha571@gmail.com",
+      "password": "123",
+      "bankAccount": "4642162584448386",
+      "panCard": "DTYPM4843V",
+      "aadhaarCard": "363520854819",
+      "workerId": "SWI24273",
+      "registeredAt": "2026-03-19T23:21:28.913667"
+    }
+  ]
+}

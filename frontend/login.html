@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - GigShield AI</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        /* Background Image - Local file */
+        .background-image {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -2;
+            background: url('login.jpeg') no-repeat center center fixed;
+            background-size: cover;
+            filter: brightness(0.7);
+        }
+
+        /* Dark Overlay */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.9) 0%, rgba(118, 75, 162, 0.9) 100%);
+            z-index: -1;
+        }
+
+        .login-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            width: 100%;
+            max-width: 450px;
+            padding: 40px;
+            animation: slideUp 0.5s ease;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            position: relative;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Back Button */
+        .back-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: #667eea;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 20px;
+            transition: all 0.3s;
+            backdrop-filter: blur(5px);
+            text-decoration: none;
+        }
+
+        .back-btn:hover {
+            background: #667eea;
+            color: white;
+            transform: translateX(-5px);
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: 30px;
+            margin-top: 20px;
+        }
+
+        .logo span {
+            font-size: 50px;
+            display: block;
+            margin-bottom: 10px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .logo h1 {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-size: 28px;
+        }
+
+        h2 {
+            text-align: center;
+            color: #2d3748;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #718096;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #4a5568;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .input-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        input {
+            flex: 1;
+            padding: 12px 15px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 14px;
+            transition: all 0.3s;
+            background: rgba(255, 255, 255, 0.9);
+        }
+
+        input:focus {
+            border-color: #667eea;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(102,126,234,0.1);
+        }
+
+        .random-btn {
+            background: #edf2f7;
+            border: 1px dashed #667eea;
+            color: #667eea;
+            padding: 8px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s;
+            white-space: nowrap;
+        }
+
+        .random-btn:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-login {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+
+        .btn-login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102,126,234,0.3);
+        }
+
+        .register-link {
+            text-align: center;
+            margin-top: 20px;
+            color: #718096;
+        }
+
+        .register-link a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .register-link a:hover {
+            text-decoration: underline;
+        }
+
+        .error-message {
+            background: #f56565;
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+            display: none;
+            animation: slideDown 0.5s ease;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        .demo-credentials {
+            background: rgba(247, 250, 252, 0.9);
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            font-size: 13px;
+            color: #4a5568;
+            border: 1px dashed #667eea;
+        }
+
+        .demo-credentials p {
+            margin: 5px 0;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Background Image - Local login.jpeg file -->
+    <div class="background-image"></div>
+    
+    <!-- Dark Overlay -->
+    <div class="overlay"></div>
+
+    <div class="login-container">
+        <!-- Back Button - Navigates to landing.html -->
+        <a href="landing.html" class="back-btn">←</a>
+
+        <div class="logo">
+            <span>🛡️</span>
+            <h1>GigShield AI</h1>
+        </div>
+        
+        <h2>Welcome Back!</h2>
+        <p class="subtitle">Login to your account</p>
+
+        <!-- Error Message -->
+        <div id="errorMessage" class="error-message">
+            ❌ Error: 
+        </div>
+
+        <form id="loginForm" onsubmit="handleLogin(event)">
+            <div class="form-group">
+                <label>Email</label>
+                <div class="input-group">
+                    <input type="email" id="email" placeholder="Enter your email" required>
+                    <span class="random-btn" onclick="fillRandomEmail()">🎲 Random</span>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Password</label>
+                <div class="input-group">
+                    <input type="password" id="password" placeholder="Enter your password" required>
+                    <span class="random-btn" onclick="fillRandomPassword()">🎲 Random</span>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-login">Login</button>
+        </form>
+
+        <div class="register-link">
+            Don't have an account? <a href="register.html">Register here</a>
+        </div>
+
+        <div class="demo-credentials">
+            <p><strong>🎯 Demo Credentials:</strong></p>
+            <p>Email: rahul123@gmail.com</p>
+            <p>Password: password123</p>
+            <p style="font-size: 12px; margin-top: 8px;">Click "Random" to generate random values or use demo credentials</p>
+        </div>
+    </div>
+
+    <script>
+        function getRandomInt(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
+        function fillRandomEmail() {
+            const domains = ['gmail.com', 'yahoo.com', 'outlook.com'];
+            const names = ['rahul', 'priya', 'amit', 'neha', 'vikram'];
+            const name = names[getRandomInt(0, 4)];
+            const num = getRandomInt(100, 999);
+            document.getElementById('email').value = `${name}${num}@${domains[getRandomInt(0, 2)]}`;
+        }
+
+        function fillRandomPassword() {
+            const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+            let password = '';
+            for (let i = 0; i < 8; i++) {
+                password += chars[getRandomInt(0, chars.length - 1)];
+            }
+            document.getElementById('password').value = password;
+        }
+
+        // ===== SIMPLE LOGIN - ANY VALUES WORK =====
+        function handleLogin(event) {
+            event.preventDefault();
+            
+            // Get values (any random values work)
+            const email = document.getElementById('email').value;
+            
+            // Store login info
+            sessionStorage.setItem('user', JSON.stringify({
+                email: email,
+                name: email.split('@')[0] || 'User'
+            }));
+            
+            // Clear any existing locations to force modal
+            localStorage.removeItem('userLocations');
+            
+            // Show message
+            alert('Login successful! Please enter your work locations.');
+            
+            // Redirect to index.html (which has location modal)
+            window.location.href = 'index.html';
+        }
+        
+        function showError(message) {
+            const errorMsg = document.getElementById('errorMessage');
+            errorMsg.textContent = '❌ ' + message;
+            errorMsg.classList.add('show');
+            
+            setTimeout(() => {
+                errorMsg.classList.remove('show');
+            }, 5000);
+        }
+    </script>
+</body>
+</html>

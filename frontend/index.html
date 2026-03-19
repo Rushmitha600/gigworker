@@ -1,0 +1,1055 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GigSuraksha AI - Insurance for Gig Workers</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Logout button styles */
+        .logout-btn {
+            background: #f56565;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            margin-left: 10px;
+            transition: all 0.3s;
+        }
+        
+        .logout-btn:hover {
+            background: #c53030;
+            transform: translateY(-2px);
+        }
+        
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .error-message {
+            background: #f56565;
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 10px 0;
+            text-align: center;
+        }
+        
+        .success-message {
+            background: #48bb78;
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 10px 0;
+            text-align: center;
+        }
+        
+        .breakdown-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+    </style>
+</head>
+<body>
+    <script>
+        // Check if user is logged in - if not, redirect to landing
+        (function() {
+            const user = sessionStorage.getItem('user');
+            if (!user) {
+                window.location.href = 'landing.html';
+            }
+        })();
+    </script>
+
+    <!-- Location Modal -->
+    <div class="modal" id="locationModal">
+        <div class="modal-content">
+            <h2>📍 Select Your Locations</h2>
+            <p>Choose up to 3 cities where you work. We'll monitor weather and protect your earnings!</p>
+            
+            <div class="location-inputs">
+                <div class="location-input-group">
+                    <label>Option 1 (Primary)</label>
+                    <input type="text" id="location1" placeholder="e.g., Mumbai" class="location-input" value="Mumbai">
+                </div>
+                <div class="location-input-group">
+                    <label>Option 2</label>
+                    <input type="text" id="location2" placeholder="e.g., Delhi" class="location-input" value="Delhi">
+                </div>
+                <div class="location-input-group">
+                    <label>Option 3</label>
+                    <input type="text" id="location3" placeholder="e.g., Bangalore" class="location-input" value="Bangalore">
+                </div>
+            </div>
+            
+            <button class="save-locations-btn" onclick="saveUserLocations()">Save & Continue →</button>
+            <p class="modal-note">You can change these anytime in settings</p>
+        </div>
+    </div>
+
+    <div class="app-container" id="appContainer" style="display: none;">
+        <!-- Top Navigation -->
+        <nav class="top-nav">
+            <div class="logo">
+                <span class="logo-icon">🛡️</span>
+                <span class="logo-text">GigSuraksha AI</span>
+            </div>
+            
+            <div class="nav-items">
+                <button class="nav-btn active" data-section="home">🏠 Home</button>
+                <button class="nav-btn" data-section="weather">🌤️ Weather</button>
+                <button class="nav-btn" data-section="plans">📋 Plans</button>
+                <button class="nav-btn" data-section="premium">💰 Premium</button>
+                <button class="nav-btn" data-section="claims">⚡ Claims</button>
+                <button class="nav-btn" data-section="settings">⚙️ Settings</button>
+            </div>
+            
+            <div class="nav-right">
+                <button class="theme-toggle" id="themeToggle">🌙</button>
+                <button class="logout-btn" onclick="logout()">🚪 Logout</button>
+                <button class="menu-toggle">☰</button>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <div class="content-area">
+            <!-- HOME SECTION -->
+            <section id="home-section" class="section active">
+                <div class="welcome-card">
+                    <h1>Welcome Back! 🛡️</h1>
+                    <p>Your protected locations are being monitored 24/7. Get auto-payouts when weather affects your work.</p>
+                </div>
+
+                <!-- Weather Cards for Saved Locations -->
+                <div class="weather-live">
+                    <h2>🌍 Live Weather in Your Locations</h2>
+                    <div class="saved-locations-weather" id="savedLocationsWeather">
+                        <div class="loading">Loading your locations weather...</div>
+                    </div>
+                </div>
+
+                <!-- Weather Risk Summary -->
+                <div class="risk-summary" id="riskSummary"></div>
+            </section>
+
+            <!-- WEATHER SECTION -->
+            <section id="weather-section" class="section">
+                <h2>🌤️ Weather & 7-Day Forecast</h2>
+
+                <div class="weather-search">
+                    <input type="text" id="weatherCity" placeholder="Enter city name" value="Mumbai">
+                    <button onclick="getWeatherAndForecast()" class="search-btn">Get Weather & Forecast</button>
+                </div>
+
+                <div id="weatherDetail" class="weather-detail-card">
+                    <div class="loading">Enter a city to see weather, precautions, and 7-day forecast</div>
+                </div>
+
+                <!-- WEEKLY FORECAST -->
+                <div id="weeklyForecast" class="weekly-forecast"></div>
+            </section>
+
+            <!-- PLANS SECTION -->
+            <section id="plans-section" class="section">
+                <h2>📋 Insurance Plans</h2>
+                <div class="plans-container" id="plansContainer"></div>
+            </section>
+
+            <!-- PREMIUM SECTION -->
+            <section id="premium-section" class="section">
+                <h2>💰 Premium Calculator</h2>
+                <div class="calculator-card">
+                    <div class="calculator-form">
+                        <div class="form-group">
+                            <label>Select Plan</label>
+                            <select id="premium-plan">
+                                <option value="basic">Basic Plan</option>
+                                <option value="standard" selected>Standard Plan (Popular)</option>
+                                <option value="premium">Premium Plan</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Enter City Name</label>
+                            <input type="text" id="premium-city-input" placeholder="e.g., Mumbai, Delhi, Bangalore" value="Mumbai">
+                            <small style="color: var(--text-muted); display: block; margin-top: 5px;">Type any Indian city</small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Delivery Mode</label>
+                            <select id="delivery-mode">
+                                <option value="bike">Bike</option>
+                                <option value="scooter">Scooter</option>
+                                <option value="cycle">Cycle</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Experience (years)</label>
+                                <input type="number" id="experience" min="0" max="10" value="2">
+                            </div>
+                            <div class="form-group">
+                                <label>Daily Hours</label>
+                                <input type="number" id="work-hours" min="4" max="14" value="8">
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Payment Period</label>
+                            <select id="payment-period">
+                                <option value="weekly">Weekly</option>
+                                <option value="monthly">Monthly (10% discount)</option>
+                            </select>
+                        </div>
+                        
+                        <button class="calculate-btn" onclick="calculatePremium()">Calculate Premium</button>
+                    </div>
+                    
+                    <div class="premium-result" id="premiumResult" style="display: none;">
+                        <h3>Your Premium</h3>
+                        <div class="result-amount" id="premiumAmount">₹0</div>
+                        <div class="result-period" id="premiumPeriod"></div>
+                        <div class="result-breakdown" id="premiumBreakdown"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- CLAIMS SECTION -->
+            <section id="claims-section" class="section">
+                <h2>⚡ Auto-Claims Center</h2>
+                
+                <div class="claims-process" id="claimsProcess"></div>
+                
+                <div class="coverage-details">
+                    <h3>📊 Coverage Details</h3>
+                    <div class="coverage-grid" id="coverageGrid"></div>
+                </div>
+                
+                <div class="claims-faq">
+                    <h3>❓ Claims FAQ</h3>
+                    <div class="faq-list" id="claimsFaqList"></div>
+                </div>
+            </section>
+
+            <!-- SETTINGS SECTION -->
+            <section id="settings-section" class="section">
+                <h2>⚙️ Settings</h2>
+                
+                <div class="settings-card">
+                    <h3>📍 Your Locations</h3>
+                    <p>Update the cities where you work</p>
+                    
+                    <div class="location-inputs">
+                        <div class="location-input-group">
+                            <label>Option 1 (Primary)</label>
+                            <input type="text" id="settings-location1" class="location-input">
+                        </div>
+                        <div class="location-input-group">
+                            <label>Option 2</label>
+                            <input type="text" id="settings-location2" class="location-input">
+                        </div>
+                        <div class="location-input-group">
+                            <label>Option 3</label>
+                            <input type="text" id="settings-location3" class="location-input">
+                        </div>
+                    </div>
+                    
+                    <button class="save-settings-btn" onclick="updateUserLocations()">Update Locations</button>
+                </div>
+                
+                <div class="settings-card">
+                    <h3>🎨 Appearance</h3>
+                    <p>Choose your theme</p>
+                    <div class="theme-options">
+                        <button class="theme-option active" onclick="setTheme('light')">☀️ Light</button>
+                        <button class="theme-option" onclick="setTheme('dark')">🌙 Dark</button>
+                    </div>
+                </div>
+                
+                <div class="settings-card">
+                    <h3>📱 App Info</h3>
+                    <p>Version 1.0.0</p>
+                    <p>Real-time weather monitoring for gig workers</p>
+                    <p>Auto-payouts within 24 hours</p>
+                    <p>📍 Your saved locations: <span id="savedLocationsList"></span></p>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <!-- AI CHATBOT -->
+    <div class="chatbot-widget" id="chatbotWidget" style="display: block;">
+        <div class="chat-header" onclick="toggleChat()">
+            <div class="chat-header-info">
+                <span class="chat-avatar">🤖</span>
+                <div>
+                    <h4>GigSuraksha AI</h4>
+                    <p>Online • Trained Assistant</p>
+                </div>
+            </div>
+            <button class="chat-toggle" id="chatToggle">💬</button>
+        </div>
+        <div class="chat-body" id="chatBody">
+            <div class="chat-messages" id="chatMessages"> Hello! how can I help you today?</div>
+            <div class="quick-questions">
+                <button class="quick-q" onclick="sendQuickQuestion('Tell me about plans')">📋 Plans</button>
+                <button class="quick-q" onclick="sendQuickQuestion('How do claims work?')">⚡ Claims</button>
+                <button class="quick-q" onclick="sendQuickQuestion('Rain coverage?')">🌧️ Rain</button>
+                <button class="quick-q" onclick="sendQuickQuestion('Heat wave?')">🌡️ Heat</button>
+                <button class="quick-q" onclick="sendQuickQuestion('What is premium?')">💰 Premium</button>
+            </div>
+            <div class="chat-input-area">
+                <input type="text" id="chatInput" placeholder="Ask me anything..." onkeypress="if(event.key==='Enter') sendMessage()">
+                <button class="send-btn" onclick="sendMessage()">➤</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- DARK MODE SCRIPT -->
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            if (savedTheme === 'dark') {
+                document.body.classList.add('dark-mode');
+            }
+            
+            document.addEventListener('DOMContentLoaded', function() {
+                const themeBtn = document.getElementById('themeToggle');
+                if (themeBtn) {
+                    themeBtn.textContent = document.body.classList.contains('dark-mode') ? '☀️' : '🌙';
+                    
+                    themeBtn.addEventListener('click', function() {
+                        if (document.body.classList.contains('dark-mode')) {
+                            document.body.classList.remove('dark-mode');
+                            this.textContent = '🌙';
+                            localStorage.setItem('theme', 'light');
+                        } else {
+                            document.body.classList.add('dark-mode');
+                            this.textContent = '☀️';
+                            localStorage.setItem('theme', 'dark');
+                        }
+                    });
+                }
+            });
+        })();
+    </script>
+
+    <!-- MAIN SCRIPT - Real Weather + Premium + AI -->
+    <script>
+        // ==================== API CONFIG ====================
+        const API_URL = 'http://localhost:5000';
+        let userLocations = [];
+
+        // ==================== LOGOUT FUNCTION ====================
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                sessionStorage.removeItem('user');
+                sessionStorage.removeItem('userName');
+                sessionStorage.removeItem('userEmail');
+                window.location.href = 'landing.html';
+            }
+        }
+
+        // ==================== LOCATION FUNCTIONS ====================
+        function saveUserLocations() {
+            const loc1 = document.getElementById('location1').value.trim();
+            const loc2 = document.getElementById('location2').value.trim();
+            const loc3 = document.getElementById('location3').value.trim();
+            
+            const locations = [];
+            if (loc1) locations.push(loc1);
+            if (loc2) locations.push(loc2);
+            if (loc3) locations.push(loc3);
+            
+            if (locations.length === 0) {
+                alert('Please enter at least one location');
+                return;
+            }
+            
+            localStorage.setItem('userLocations', JSON.stringify(locations));
+            userLocations = locations;
+            
+            document.getElementById('locationModal').style.display = 'none';
+            document.getElementById('appContainer').style.display = 'block';
+            
+            if (loc1) document.getElementById('settings-location1').value = loc1;
+            if (loc2) document.getElementById('settings-location2').value = loc2;
+            if (loc3) document.getElementById('settings-location3').value = loc3;
+            
+            document.getElementById('savedLocationsList').textContent = locations.join(', ');
+            
+            loadSavedLocationsWeather();
+            alert('Locations saved successfully!');
+        }
+
+        function updateUserLocations() {
+            const loc1 = document.getElementById('settings-location1').value.trim();
+            const loc2 = document.getElementById('settings-location2').value.trim();
+            const loc3 = document.getElementById('settings-location3').value.trim();
+            
+            const locations = [];
+            if (loc1) locations.push(loc1);
+            if (loc2) locations.push(loc2);
+            if (loc3) locations.push(loc3);
+            
+            if (locations.length === 0) {
+                alert('Please enter at least one location');
+                return;
+            }
+            
+            localStorage.setItem('userLocations', JSON.stringify(locations));
+            userLocations = locations;
+            document.getElementById('savedLocationsList').textContent = locations.join(', ');
+            loadSavedLocationsWeather();
+            alert('Locations updated successfully!');
+        }
+
+        // ==================== HOME PAGE WEATHER - REAL DATA ====================
+        function loadSavedLocationsWeather() {
+            const container = document.getElementById('savedLocationsWeather');
+            if (!container) return;
+            
+            if (!userLocations || userLocations.length === 0) {
+                container.innerHTML = '<div class="loading">No locations saved. Go to Settings to add locations.</div>';
+                return;
+            }
+            
+            container.innerHTML = '<div class="loading">Loading real weather data from API...</div>';
+            
+            // Fetch real weather for each location from backend
+            Promise.all(userLocations.map(city => 
+                fetch(`${API_URL}/api/weather/${encodeURIComponent(city)}`)
+                    .then(res => res.json())
+                    .catch(err => ({ success: false, city, error: err.message }))
+            )).then(results => {
+                let html = '';
+                let highRiskCount = 0;
+                
+                results.forEach((data, index) => {
+                    if (!data.success) {
+                        html += `
+                            <div class="location-weather-card">
+                                <div class="location-header">
+                                    <h3>${userLocations[index]}</h3>
+                                </div>
+                                <div class="error-message">Weather data not available</div>
+                            </div>
+                        `;
+                        return;
+                    }
+                    
+                    const riskClass = data.risk_score > 60 ? 'risk-high' : 
+                                    data.risk_score > 40 ? 'risk-medium' : 'risk-low';
+                    
+                    if (data.risk_score > 60) highRiskCount++;
+                    
+                    // Generate precautions based on real temperature
+                    let precautions = [];
+                    if (data.temperature > 38) {
+                        precautions = [
+                            '🔥 EXTREME HEAT - HIGH RISK',
+                            '💧 Drink water every 30 minutes',
+                            '🧢 Work before 10 AM or after 4 PM',
+                            '🚗 Take AC breaks'
+                        ];
+                    } else if (data.temperature > 35) {
+                        precautions = [
+                            '🌡️ High Temperature - MEDIUM RISK',
+                            '💧 Carry 2+ liters water',
+                            '🧢 Wear light cotton clothes',
+                            '⏰ Avoid 12 PM - 3 PM'
+                        ];
+                    } else if (data.temperature > 30) {
+                        precautions = [
+                            '🌡️ Warm Weather - LOW RISK',
+                            '💧 Stay hydrated',
+                            '⏰ Take regular breaks'
+                        ];
+                    } else if (data.condition.toLowerCase().includes('rain')) {
+                        precautions = [
+                            '🌧️ Rain Detected - ACTIVE COVERAGE',
+                            '🧥 Wear raincoat',
+                            '🚗 Drive slowly',
+                            '⚠️ Avoid water logging'
+                        ];
+                    } else {
+                        precautions = [
+                            '✅ Weather conditions are favorable',
+                            '🪖 Always wear helmet',
+                            '💧 Stay hydrated'
+                        ];
+                    }
+                    
+                    html += `
+                        <div class="location-weather-card ${index === 0 ? 'primary' : ''}">
+                            <div class="location-header">
+                                <h3>${data.city || userLocations[index]}</h3>
+                                ${index === 0 ? '<span class="primary-badge">PRIMARY</span>' : ''}
+                            </div>
+                            <div class="weather-temp-large">${data.temperature}°C</div>
+                            <div class="weather-condition">${data.condition}</div>
+                            <span class="risk-badge ${riskClass}">${data.risk_level} Risk (${data.risk_score})</span>
+                            
+                            <div class="weather-details">
+                                <div class="weather-detail-item">
+                                    <span>💧 Humidity</span>
+                                    <strong>${data.humidity}%</strong>
+                                </div>
+                                <div class="weather-detail-item">
+                                    <span>💨 Wind</span>
+                                    <strong>${data.wind_speed} km/h</strong>
+                                </div>
+                            </div>
+                            
+                            <div class="precautions">
+                                <h4>🛡️ Today's Precautions</h4>
+                                <ul class="precautions-list">
+                                    ${precautions.map(p => `<li>• ${p}</li>`).join('')}
+                                </ul>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                container.innerHTML = html;
+                
+                const riskSummary = document.getElementById('riskSummary');
+                if (riskSummary) {
+                    if (highRiskCount > 0) {
+                        riskSummary.innerHTML = `
+                            <h3>⚠️ High Risk Alert</h3>
+                            <p>${highRiskCount} location(s) have HIGH risk today. Coverage is active.</p>
+                        `;
+                    } else {
+                        riskSummary.innerHTML = `
+                            <h3>✅ All Clear</h3>
+                            <p>No high risk conditions in your locations.</p>
+                        `;
+                    }
+                }
+            }).catch(err => {
+                console.error('Error loading weather:', err);
+                container.innerHTML = '<div class="loading error">❌ Error loading weather data. Please try again.</div>';
+            });
+        }
+
+        // ==================== WEATHER SEARCH - REAL DATA ====================
+        function getWeatherAndForecast() {
+            const city = document.getElementById('weatherCity').value.trim();
+            if (!city) {
+                alert('Please enter a city name');
+                return;
+            }
+
+            const detailDiv = document.getElementById('weatherDetail');
+            detailDiv.innerHTML = '<div class="loading">Loading real weather data...</div>';
+            
+            fetch(`${API_URL}/api/weather/${encodeURIComponent(city)}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (!data.success) {
+                        detailDiv.innerHTML = `<div class="error-message">❌ ${data.error || 'City not found'}</div>`;
+                        return;
+                    }
+                    
+                    const riskClass = data.risk_score > 60 ? 'risk-high' : 
+                                     data.risk_score > 40 ? 'risk-medium' : 'risk-low';
+                    
+                    // Generate precautions based on real temperature
+                    let precautions = [];
+                    if (data.temperature > 38) {
+                        precautions = [
+                            '🔥 EXTREME HEAT - HIGH RISK',
+                            '💧 Drink water every 30 minutes',
+                            '🧢 Work before 10 AM or after 4 PM',
+                            '🚗 Take AC breaks'
+                        ];
+                    } else if (data.temperature > 35) {
+                        precautions = [
+                            '🌡️ High Temperature - MEDIUM RISK',
+                            '💧 Carry 2+ liters water',
+                            '🧢 Wear light cotton clothes',
+                            '⏰ Avoid 12 PM - 3 PM'
+                        ];
+                    } else if (data.temperature > 30) {
+                        precautions = [
+                            '🌡️ Warm Weather - LOW RISK',
+                            '💧 Stay hydrated',
+                            '⏰ Take regular breaks'
+                        ];
+                    } else if (data.condition.toLowerCase().includes('rain')) {
+                        precautions = [
+                            '🌧️ Rain Detected - ACTIVE COVERAGE',
+                            '🧥 Wear raincoat',
+                            '🚗 Drive slowly',
+                            '⚠️ Avoid water logging'
+                        ];
+                    } else {
+                        precautions = [
+                            '✅ Weather conditions are favorable',
+                            '🪖 Always wear helmet',
+                            '💧 Stay hydrated'
+                        ];
+                    }
+                    
+                    let html = `
+                        <div class="weather-main">
+                            <div class="weather-temp">${data.temperature}°C</div>
+                            <div class="weather-condition">${data.condition}</div>
+                            <span class="risk-badge ${riskClass}" style="margin-top: 10px; display: inline-block;">
+                                ${data.risk_level} Risk (${data.risk_score})
+                            </span>
+                        </div>
+                        
+                        <div class="weather-details">
+                            <div class="detail-item">
+                                <span class="detail-label">💧 Humidity</span>
+                                <span class="detail-value">${data.humidity}%</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">💨 Wind</span>
+                                <span class="detail-value">${data.wind_speed} km/h</span>
+                            </div>
+                        </div>
+                        
+                        <div class="precautions-section" style="margin-top: 20px; padding: 15px; background: var(--input-bg); border-radius: 12px;">
+                            <h4 style="color: var(--text-primary); margin-bottom: 10px;">🛡️ Safety Precautions</h4>
+                            <ul style="list-style: none; padding: 0;">
+                                ${precautions.map(p => `<li style="padding: 5px 0; color: var(--text-secondary);">• ${p}</li>`).join('')}
+                            </ul>
+                        </div>
+                    `;
+                    
+                    detailDiv.innerHTML = html;
+                    
+                    // Load 5-day forecast
+                    fetchWeeklyForecast(city);
+                })
+                .catch(err => {
+                    console.error('Error:', err);
+                    detailDiv.innerHTML = '<div class="error-message">❌ Error fetching weather. Please try again.</div>';
+                });
+        }
+
+        function fetchWeeklyForecast(city) {
+            fetch(`https://api.openweathermap.org/data/2.5/forecast?q=${city},IN&units=metric&appid=bb2d87b40339704b46f88cfc9c6782fd`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.cod !== "200") {
+                    console.log("Forecast not available");
+                    return;
+                }
+                
+                const forecastDiv = document.getElementById('weeklyForecast');
+                if (!forecastDiv) return;
+                
+                // Group by day
+                const dailyForecasts = {};
+                data.list.forEach(item => {
+                    const date = new Date(item.dt * 1000).toLocaleDateString('en-IN', { weekday: 'short' });
+                    if (!dailyForecasts[date]) {
+                        dailyForecasts[date] = item;
+                    }
+                });
+
+                let html = '<h3>📅 5-Day Forecast</h3><div style="display: flex; gap: 10px; overflow-x: auto; padding: 10px 0;">';
+                
+                let count = 0;
+                for (let date in dailyForecasts) {
+                    if (count >= 5) break;
+                    const item = dailyForecasts[date];
+                    
+                    let icon = '☀️';
+                    const condition = item.weather[0].main.toLowerCase();
+                    if (condition.includes('rain')) icon = '🌧️';
+                    else if (condition.includes('cloud')) icon = '☁️';
+                    
+                    html += `
+                        <div style="min-width: 100px; background: var(--input-bg); padding: 10px; border-radius: 10px; text-align: center;">
+                            <div><strong>${date}</strong></div>
+                            <div style="font-size: 1.5rem;">${icon}</div>
+                            <div>${Math.round(item.main.temp)}°C</div>
+                            <div style="font-size:0.8rem;">${item.weather[0].description}</div>
+                        </div>
+                    `;
+                    count++;
+                }
+                
+                html += '</div>';
+                forecastDiv.innerHTML = html;
+            })
+            .catch(err => console.error("Forecast error:", err));
+        }
+
+        // ==================== PREMIUM CALCULATOR - FIXED ====================
+        function calculatePremium() {
+            const city = document.getElementById('premium-city-input').value.trim();
+            const mode = document.getElementById('delivery-mode').value;
+            const experience = parseInt(document.getElementById('experience').value) || 2;
+            const hours = parseInt(document.getElementById('work-hours').value) || 8;
+            const plan = document.getElementById('premium-plan').value;
+            const period = document.getElementById('payment-period').value;
+            
+            if (!city) {
+                alert('Please enter a city name');
+                return;
+            }
+            
+            // Base prices
+            let basePrice = plan === 'basic' ? 100 : plan === 'standard' ? 200 : 300;
+            
+            // City factor based on common cities
+            let cityFactor = 1.1;
+            const cityLower = city.toLowerCase();
+            
+            if (cityLower.includes('mumbai')) cityFactor = 1.2;
+            else if (cityLower.includes('delhi')) cityFactor = 1.15;
+            else if (cityLower.includes('bangalore')) cityFactor = 1.1;
+            else if (cityLower.includes('chennai')) cityFactor = 1.05;
+            else if (cityLower.includes('kolkata')) cityFactor = 1.15;
+            else if (cityLower.includes('pune')) cityFactor = 1.0;
+            else if (cityLower.includes('hyderabad')) cityFactor = 1.05;
+            
+            // Mode factor
+            let modeFactor = mode === 'bike' ? 1.1 : mode === 'scooter' ? 1.0 : 0.9;
+            
+            // Experience factor (more experience = lower premium)
+            let expFactor = Math.max(0.85, 1.0 - (experience * 0.02));
+            
+            // Hours factor (more hours = higher premium)
+            let hoursFactor = hours > 10 ? 1.2 : hours > 8 ? 1.1 : 1.0;
+            
+            // Calculate weekly amount
+            let weeklyAmount = Math.round(basePrice * cityFactor * modeFactor * expFactor * hoursFactor);
+            
+            // Monthly amount with 10% discount
+            let monthlyAmount = Math.round(weeklyAmount * 4 * 0.9);
+            
+            // Display amount based on selected period
+            const amount = period === 'weekly' ? weeklyAmount : monthlyAmount;
+            
+            document.getElementById('premiumAmount').textContent = `₹${amount}`;
+            document.getElementById('premiumPeriod').textContent = 
+                period === 'weekly' ? 'per week' : 'per month (10% discount applied)';
+            
+            // Show breakdown
+            document.getElementById('premiumBreakdown').innerHTML = `
+                <div class="breakdown-item"><span>Base Price:</span> <span>₹${basePrice}</span></div>
+                <div class="breakdown-item"><span>City Factor (${city}):</span> <span>${cityFactor.toFixed(2)}x</span></div>
+                <div class="breakdown-item"><span>Vehicle Factor:</span> <span>${modeFactor.toFixed(2)}x</span></div>
+                <div class="breakdown-item"><span>Experience Factor:</span> <span>${expFactor.toFixed(2)}x</span></div>
+                <div class="breakdown-item"><span>Hours Factor:</span> <span>${hoursFactor.toFixed(2)}x</span></div>
+                <div class="breakdown-item" style="font-weight: bold; border-top: 2px solid var(--accent); margin-top: 8px; padding-top: 8px;">
+                    <span>Total (${period}):</span> <span>₹${amount}</span>
+                </div>
+            `;
+            
+            document.getElementById('premiumResult').style.display = 'block';
+        }
+
+        // ==================== PLANS ====================
+        function loadPlans() {
+            const container = document.getElementById('plansContainer');
+            if (!container) return;
+            
+            const plans = [
+                { name: 'Basic Plan', price: '₹100', coverage: '₹2,000', features: ['Rain Coverage', 'Heat Wave', 'Cold Wave'], icon: '🛡️' },
+                { name: 'Standard Plan', price: '₹200', coverage: '₹4,000', features: ['Storm Coverage', 'Air Pollution', '24/7 Support'], icon: '⭐', popular: true },
+                { name: 'Premium Plan', price: '₹300', coverage: '₹7,000', features: ['Natural Disaster', 'Holiday Bonus', 'Priority Claims'], icon: '👑' }
+            ];
+            
+            container.innerHTML = `
+                <div class="plans-grid">
+                    ${plans.map(plan => `
+                        <div class="plan-card ${plan.popular ? 'popular' : ''}">
+                            ${plan.popular ? '<span class="popular-badge">🔥 Most Popular</span>' : ''}
+                            <div class="plan-icon">${plan.icon}</div>
+                            <div class="plan-name">${plan.name}</div>
+                            <div class="plan-price">${plan.price}<small>/week</small></div>
+                            <div class="plan-coverage">Up to ${plan.coverage}</div>
+                            <ul class="plan-features">
+                                ${plan.features.map(f => `<li>${f}</li>`).join('')}
+                            </ul>
+                            <button class="select-plan-btn" onclick="selectPlan('${plan.name}')">Choose Plan</button>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        function selectPlan(planName) {
+            showSection('premium');
+            const planSelect = document.getElementById('premium-plan');
+            if (planSelect) {
+                if (planName.includes('Basic')) planSelect.value = 'basic';
+                else if (planName.includes('Standard')) planSelect.value = 'standard';
+                else if (planName.includes('Premium')) planSelect.value = 'premium';
+            }
+        }
+
+        // ==================== CLAIMS ====================
+        function loadClaimsInfo() {
+            const processContainer = document.getElementById('claimsProcess');
+            if (processContainer) {
+                processContainer.innerHTML = `
+                    <div class="process-step"><span class="step-number">1</span><div class="step-icon">🌤️</div><div class="step-title">Weather Monitoring</div><div class="step-description">24/7 monitoring of your locations</div></div>
+                    <div class="process-step"><span class="step-number">2</span><div class="step-icon">⚡</div><div class="step-title">Auto-Trigger</div><div class="step-description">Claim starts when conditions exceed thresholds</div></div>
+                    <div class="process-step"><span class="step-number">3</span><div class="step-icon">💰</div><div class="step-title">Amount Calculation</div><div class="step-description">Based on your earnings and weather severity</div></div>
+                    <div class="process-step"><span class="step-number">4</span><div class="step-icon">💸</div><div class="step-title">Instant Payment</div><div class="step-description">Money in your bank within 24 hours</div></div>
+                `;
+            }
+            
+            const coverageGrid = document.getElementById('coverageGrid');
+            if (coverageGrid) {
+                coverageGrid.innerHTML = `
+                    <div class="coverage-item"><h4>Heavy Rain (>75mm)</h4><p>💰 Payout: 50-70% of earnings</p><p>⚡ Trigger: 4+ hours of rain</p></div>
+                    <div class="coverage-item"><h4>Heat Wave (>40°C)</h4><p>💰 Payout: 40-60% of earnings</p><p>⚡ Trigger: Peak hours 12-4 PM</p></div>
+                    <div class="coverage-item"><h4>Storm/Cyclone</h4><p>💰 Payout: 60-80% of earnings</p><p>⚡ Trigger: Wind speed >60 km/h</p></div>
+                `;
+            }
+            
+            const faqList = document.getElementById('claimsFaqList');
+            if (faqList) {
+                faqList.innerHTML = `
+                    <div class="faq-item" onclick="this.classList.toggle('active')"><div class="faq-question">How are payouts calculated? <span>▼</span></div><div class="faq-answer">Based on your average daily earnings × weather impact percentage</div></div>
+                    <div class="faq-item" onclick="this.classList.toggle('active')"><div class="faq-question">When will I receive money? <span>▼</span></div><div class="faq-answer">Within 24 hours of the weather event</div></div>
+                    <div class="faq-item" onclick="this.classList.toggle('active')"><div class="faq-question">Do I need to file anything? <span>▼</span></div><div class="faq-answer">No! It's completely automatic</div></div>
+                `;
+            }
+        }
+
+        // ==================== NAVIGATION ====================
+        function showSection(section) {
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if(btn.dataset.section === section) {
+                    btn.classList.add('active');
+                }
+            });
+            
+            document.querySelectorAll('.section').forEach(s => {
+                s.classList.remove('active');
+            });
+            
+            document.getElementById(section + '-section').classList.add('active');
+            
+            if (section === 'home') {
+                loadSavedLocationsWeather();
+            } else if (section === 'plans') {
+                loadPlans();
+            } else if (section === 'claims') {
+                loadClaimsInfo();
+            }
+        }
+
+        // ==================== THEME ====================
+        function setTheme(theme) {
+            if (theme === 'dark') {
+                document.body.classList.add('dark-mode');
+                document.getElementById('themeToggle').textContent = '☀️';
+            } else {
+                document.body.classList.remove('dark-mode');
+                document.getElementById('themeToggle').textContent = '🌙';
+            }
+            localStorage.setItem('theme', theme);
+            
+            // Update theme options
+            document.querySelectorAll('.theme-option').forEach(opt => {
+                opt.classList.remove('active');
+                if ((theme === 'dark' && opt.textContent.includes('Dark')) || 
+                    (theme === 'light' && opt.textContent.includes('Light'))) {
+                    opt.classList.add('active');
+                }
+            });
+        }
+
+        // ==================== CHATBOT - FIXED ====================
+        let chatOpen = true;
+        
+        function toggleChat() {
+            const chatBody = document.getElementById('chatBody');
+            const chatToggle = document.getElementById('chatToggle');
+            
+            if (chatOpen) {
+                chatBody.style.display = 'none';
+                chatToggle.textContent = '💬';
+            } else {
+                chatBody.style.display = 'flex';
+                chatToggle.textContent = '✕';
+            }
+            chatOpen = !chatOpen;
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+            if (!message) return;
+            
+            addMessage(message, 'user');
+            input.value = '';
+            
+            // Show typing indicator
+            showTypingIndicator();
+            
+            // Get AI response
+            setTimeout(() => {
+                removeTypingIndicator();
+                const response = getAIResponse(message);
+                addMessage(response, 'bot');
+            }, 800);
+        }
+
+        function sendQuickQuestion(question) {
+            addMessage(question, 'user');
+            showTypingIndicator();
+            
+            setTimeout(() => {
+                removeTypingIndicator();
+                const response = getAIResponse(question);
+                addMessage(response, 'bot');
+            }, 600);
+        }
+
+        function getAIResponse(message) {
+            const msg = message.toLowerCase();
+            
+            // Plan related
+            if (msg.includes('plan') || msg.includes('insurance')) {
+                if (msg.includes('basic')) {
+                    return "🛡️ **Basic Plan** - ₹100/week\n• Rain coverage\n• Heat wave coverage\n• Cold wave coverage\n• Up to ₹2,000 coverage";
+                }
+                if (msg.includes('standard')) {
+                    return "⭐ **Standard Plan** - ₹200/week\n• Everything in Basic\n• Storm coverage\n• Air pollution coverage\n• 24/7 support\n• Up to ₹4,000 coverage";
+                }
+                if (msg.includes('premium')) {
+                    return "👑 **Premium Plan** - ₹300/week\n• Everything in Standard\n• Natural disaster coverage\n• Holiday bonus\n• Priority claims\n• Up to ₹7,000 coverage";
+                }
+                return "We have 3 plans:\n• Basic (₹100/week)\n• Standard (₹200/week) - Popular\n• Premium (₹300/week)\n\nWhich would you like to know about?";
+            }
+            
+            // Claim related
+            if (msg.includes('claim') || msg.includes('payout') || msg.includes('money')) {
+                return "⚡ **Auto-Claims Process:**\n1. We monitor weather 24/7\n2. When threshold met → Auto-trigger\n3. Amount calculated automatically\n4. Money in bank within 24 hours\n\nNo paperwork needed!";
+            }
+            
+            // Weather related
+            if (msg.includes('rain')) {
+                return "🌧️ **Rain Coverage:** Auto-payout when rainfall >75mm. Get 50-70% of lost earnings automatically.";
+            }
+            if (msg.includes('heat') || msg.includes('hot')) {
+                return "🌡️ **Heat Wave Coverage:** Activates when temperature >40°C. Get 40-60% of daily earnings automatically.";
+            }
+            if (msg.includes('storm')) {
+                return "⛈️ **Storm Coverage:** Included in Standard & Premium plans. Auto-payout when wind speed >60 km/h.";
+            }
+            
+            // Premium calculation
+            if (msg.includes('premium') || msg.includes('cost') || msg.includes('price')) {
+                return "💰 Use the Premium Calculator tab to get exact premium based on your city, vehicle, and experience!";
+            }
+            
+            // Greetings
+            if (msg.includes('hi') || msg.includes('hello') || msg.includes('hey')) {
+                return "👋 Hello! How can I help you with insurance today?";
+            }
+            if (msg.includes('thank')) {
+                return "😊 You're welcome!";
+            }
+            if (msg.includes('bye')) {
+                return "👋 Goodbye! Stay safe!";
+            }
+            
+            return "I can help with:\n• Insurance plans\n• Claims process\n• Weather coverage\n• Premium calculation\n\nWhat would you like to know?";
+        }
+
+        function addMessage(text, sender) {
+            const messagesDiv = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}-message`;
+            messageDiv.innerHTML = `<div class="message-content">${text.replace(/\n/g, '<br>')}</div>`;
+            messagesDiv.appendChild(messageDiv);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+
+        function showTypingIndicator() {
+            const messagesDiv = document.getElementById('chatMessages');
+            const typingDiv = document.createElement('div');
+            typingDiv.className = 'message bot-message';
+            typingDiv.id = 'typingIndicator';
+            typingDiv.innerHTML = '<div class="message-content">🤖 Typing...</div>';
+            messagesDiv.appendChild(typingDiv);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+
+        function removeTypingIndicator() {
+            const typing = document.getElementById('typingIndicator');
+            if (typing) typing.remove();
+        }
+
+        // ==================== INIT ====================
+        document.addEventListener('DOMContentLoaded', function() {
+            // Setup navigation
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.addEventListener('click', () => showSection(btn.dataset.section));
+            });
+            
+            // Load theme
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            setTheme(savedTheme);
+            
+            // Theme toggle
+            document.getElementById('themeToggle').addEventListener('click', () => {
+                setTheme(document.body.classList.contains('dark-mode') ? 'light' : 'dark');
+            });
+            
+            // Check for saved locations
+            const saved = localStorage.getItem('userLocations');
+            if (saved) {
+                userLocations = JSON.parse(saved);
+                document.getElementById('locationModal').style.display = 'none';
+                document.getElementById('appContainer').style.display = 'block';
+                
+                if (userLocations[0]) document.getElementById('settings-location1').value = userLocations[0];
+                if (userLocations[1]) document.getElementById('settings-location2').value = userLocations[1];
+                if (userLocations[2]) document.getElementById('settings-location3').value = userLocations[2];
+                document.getElementById('savedLocationsList').textContent = userLocations.join(', ');
+                
+                loadSavedLocationsWeather();
+                loadPlans();
+                loadClaimsInfo();
+            }
+            
+            // Add enter key for chat
+            const chatInput = document.getElementById('chatInput');
+            if (chatInput) {
+                chatInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') sendMessage();
+                });
+            }
+        });
+
+        // Make functions global
+        window.saveUserLocations = saveUserLocations;
+        window.updateUserLocations = updateUserLocations;
+        window.getWeatherAndForecast = getWeatherAndForecast;
+        window.calculatePremium = calculatePremium;
+        window.selectPlan = selectPlan;
+        window.showSection = showSection;
+        window.setTheme = setTheme;
+        window.toggleChat = toggleChat;
+        window.sendMessage = sendMessage;
+        window.sendQuickQuestion = sendQuickQuestion;
+        window.logout = logout;
+    </script>
+
+    <script src="script.js"></script>
+    <script src="chatbot.js"></script>
+</body>
+</html>

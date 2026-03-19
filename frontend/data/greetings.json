@@ -1,0 +1,21 @@
+{
+  "greetings": {
+    "hi": "👋 Hello! How can I help you with your insurance today?",
+    "hello": "👋 Hi there! Ask me about plans, claims, or weather!",
+    "hey": "Hey! 👋 What would you like to know?",
+    "good morning": "🌅 Good morning! Ready to help with your insurance needs!",
+    "good afternoon": "☀️ Good afternoon! How can I assist you today?",
+    "good evening": "🌆 Good evening! What brings you here?",
+    "how are you": "I'm doing great! Ready to help you with anything about gig worker insurance!",
+    "thanks": "You're welcome! 😊 Anything else I can help with?",
+    "thank you": "Happy to help! 🎉 Let me know if you need anything else!",
+    "bye": "👋 Goodbye! Stay safe and insured!",
+    "sorry": "No worries! If you have any questions, just ask!",
+    "help": "Sure! I can assist you with information about plans, claims, weather, and premiums. What would you like to know?",
+    "gm": "🌅 Good morning! Ready to help with your insurance needs!",
+    "ga": "☀️ Good afternoon! How can I assist you today!",
+    "ge": "🌆 Good evening! What brings you here?",
+    "gn": "🌙 Good night! If you have any insurance questions, just ask!"
+  },
+  "fallback": "I can help with plans, claims, weather, and premiums. What would you like to know?"
+}

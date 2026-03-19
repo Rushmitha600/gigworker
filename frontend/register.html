@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - GigShield AI</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            /* fallback color */
+            background-color: #667eea;
+        }
+
+        /* Background Image - Local register.jpeg file */
+        .background-image {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -2;
+            background: url('register.jpeg') no-repeat center center fixed;
+            background-size: cover;
+            filter: brightness(0.7);
+        }
+
+        /* Dark Overlay */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.85) 0%, rgba(118, 75, 162, 0.85) 100%);
+            z-index: -1;
+        }
+
+        .register-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            width: 100%;
+            max-width: 600px;
+            padding: 40px;
+            animation: slideUp 0.5s ease;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            position: relative;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Back Button */
+        .back-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: #667eea;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 20px;
+            transition: all 0.3s;
+            backdrop-filter: blur(5px);
+            text-decoration: none;
+        }
+
+        .back-btn:hover {
+            background: #667eea;
+            color: white;
+            transform: translateX(-5px);
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: 30px;
+            margin-top: 20px;
+        }
+
+        .logo span {
+            font-size: 50px;
+            display: block;
+            margin-bottom: 10px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .logo h1 {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-size: 28px;
+        }
+
+        h2 {
+            text-align: center;
+            color: #2d3748;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #718096;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group.full-width {
+            grid-column: span 2;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #4a5568;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 14px;
+            transition: all 0.3s;
+            background: rgba(255, 255, 255, 0.9);
+        }
+
+        input:focus {
+            border-color: #667eea;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(102,126,234,0.1);
+        }
+
+        input::placeholder {
+            color: #a0aec0;
+            font-size: 13px;
+        }
+
+        .btn-register {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+
+        .btn-register:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102,126,234,0.3);
+        }
+
+        .login-link {
+            text-align: center;
+            margin-top: 20px;
+            color: #718096;
+        }
+
+        .login-link a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .login-link a:hover {
+            text-decoration: underline;
+        }
+
+        .note {
+            text-align: center;
+            color: #a0aec0;
+            font-size: 12px;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        /* Success Message */
+        .success-message {
+            background: #48bb78;
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+            animation: slideDown 0.5s ease;
+            display: none;
+        }
+
+        .success-message.show {
+            display: block;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .error-message {
+            background: #f56565;
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        /* Random Value Button */
+        .random-btn {
+            background: #edf2f7;
+            border: 1px dashed #667eea;
+            color: #667eea;
+            padding: 8px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 12px;
+            margin-left: 10px;
+            transition: all 0.3s;
+            white-space: nowrap;
+        }
+
+        .random-btn:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .input-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .input-group input {
+            flex: 1;
+        }
+
+        @media (max-width: 600px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .form-group.full-width {
+                grid-column: span 1;
+            }
+            
+            .register-container {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Background Image - Local register.jpeg file -->
+    <div class="background-image"></div>
+    
+    <!-- Dark Overlay -->
+    <div class="overlay"></div>
+
+    <div class="register-container">
+        <!-- Back Button - Navigates to landing.html -->
+        <a href="landing.html" class="back-btn">←</a>
+
+        <div class="logo">
+            <span>🛡️</span>
+            <h1>GigShield AI</h1>
+        </div>
+        
+        <h2>Create Your Account</h2>
+        <p class="subtitle">Join thousands of protected delivery partners</p>
+
+        <!-- Success Message -->
+        <div id="successMessage" class="success-message">
+            ✅ Registration successful! Check your email for confirmation. Redirecting to login...
+        </div>
+
+        <!-- Error Message -->
+        <div id="errorMessage" class="error-message">
+            ❌ Error: 
+        </div>
+
+        <form id="registerForm" onsubmit="handleRegister(event)">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>First Name *</label>
+                    <div class="input-group">
+                        <input type="text" id="firstName" placeholder="Enter first name" required>
+                        <span class="random-btn" onclick="fillRandom('firstName')">🎲 Random</span>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Last Name *</label>
+                    <div class="input-group">
+                        <input type="text" id="lastName" placeholder="Enter last name" required>
+                        <span class="random-btn" onclick="fillRandom('lastName')">🎲 Random</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Age *</label>
+                    <div class="input-group">
+                        <input type="number" id="age" min="18" max="65" placeholder="Enter age" required>
+                        <span class="random-btn" onclick="fillRandom('age')">🎲 Random</span>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Email *</label>
+                    <div class="input-group">
+                        <input type="email" id="email" placeholder="Enter email" required>
+                        <span class="random-btn" onclick="fillRandom('email')">🎲 Random</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Password *</label>
+                    <input type="password" id="password" placeholder="Enter password" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>Confirm Password *</label>
+                    <input type="password" id="confirmPassword" placeholder="Confirm password" required>
+                </div>
+            </div>
+
+            <div class="form-group full-width">
+                <label>Bank Account Number *</label>
+                <div class="input-group">
+                    <input type="text" id="bankAccount" placeholder="Enter 16-digit account number" required pattern="\d{9,18}">
+                    <span class="random-btn" onclick="fillRandom('bankAccount')">🎲 Random</span>
+                </div>
+            </div>
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>PAN Card *</label>
+                    <div class="input-group">
+                        <input type="text" id="panCard" placeholder="e.g., ABCDE1234F" required pattern="[A-Z]{5}[0-9]{4}[A-Z]{1}">
+                        <span class="random-btn" onclick="fillRandom('panCard')">🎲 Random</span>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Aadhaar Card *</label>
+                    <div class="input-group">
+                        <input type="text" id="aadhaarCard" placeholder="12-digit Aadhaar number" required pattern="\d{12}">
+                        <span class="random-btn" onclick="fillRandom('aadhaarCard')">🎲 Random</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group full-width">
+                <label>Worker ID *</label>
+                <div class="input-group">
+                    <input type="text" id="workerId" placeholder="Enter any random worker ID" required>
+                    <span class="random-btn" onclick="fillRandom('workerId')">🎲 Random</span>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-register">Create Account</button>
+        </form>
+
+        <div class="login-link">
+            Already have an account? <a href="login.html">Login here</a>
+        </div>
+        
+        <div class="note">
+            By registering, you agree to our Terms of Service and Privacy Policy
+        </div>
+    </div>
+
+    <script>
+        // Random data generators
+        const firstNames = ['Rahul', 'Priya', 'Amit', 'Neha', 'Vikram', 'Pooja', 'Raj', 'Sneha', 'Arjun', 'Kavita'];
+        const lastNames = ['Sharma', 'Verma', 'Patel', 'Singh', 'Kumar', 'Gupta', 'Reddy', 'Joshi', 'Malhotra', 'Choudhary'];
+        
+        function getRandomInt(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
+        function generateRandomEmail() {
+            const domains = ['gmail.com', 'yahoo.com', 'outlook.com', 'rediffmail.com'];
+            const name = firstNames[getRandomInt(0, 9)].toLowerCase();
+            const num = getRandomInt(100, 999);
+            return `${name}${num}@${domains[getRandomInt(0, 3)]}`;
+        }
+
+        function generateRandomPAN() {
+            const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+            let pan = '';
+            for (let i = 0; i < 5; i++) pan += letters[getRandomInt(0, 25)];
+            for (let i = 0; i < 4; i++) pan += getRandomInt(0, 9);
+            pan += letters[getRandomInt(0, 25)];
+            return pan;
+        }
+
+        function generateRandomAadhaar() {
+            let aadhaar = '';
+            for (let i = 0; i < 12; i++) aadhaar += getRandomInt(0, 9);
+            return aadhaar;
+        }
+
+        function generateRandomBankAccount() {
+            let account = '';
+            for (let i = 0; i < 16; i++) account += getRandomInt(0, 9);
+            return account;
+        }
+
+        function generateRandomWorkerId() {
+            const prefixes = ['ZOM', 'SWI', 'ZEP', 'AMA', 'DUN'];
+            const prefix = prefixes[getRandomInt(0, 4)];
+            const num = getRandomInt(10000, 99999);
+            return `${prefix}${num}`;
+        }
+
+        function fillRandom(fieldId) {
+            const field = document.getElementById(fieldId);
+            if (!field) return;
+
+            switch(fieldId) {
+                case 'firstName':
+                    field.value = firstNames[getRandomInt(0, 9)];
+                    break;
+                case 'lastName':
+                    field.value = lastNames[getRandomInt(0, 9)];
+                    break;
+                case 'age':
+                    field.value = getRandomInt(22, 45);
+                    break;
+                case 'email':
+                    field.value = generateRandomEmail();
+                    break;
+                case 'bankAccount':
+                    field.value = generateRandomBankAccount();
+                    break;
+                case 'panCard':
+                    field.value = generateRandomPAN();
+                    break;
+                case 'aadhaarCard':
+                    field.value = generateRandomAadhaar();
+                    break;
+                case 'workerId':
+                    field.value = generateRandomWorkerId();
+                    break;
+            }
+        }
+
+        // Handle form submission
+        async function handleRegister(event) {
+            event.preventDefault();
+
+            const firstName = document.getElementById('firstName').value;
+            const lastName = document.getElementById('lastName').value;
+            const age = document.getElementById('age').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const bankAccount = document.getElementById('bankAccount').value;
+            const panCard = document.getElementById('panCard').value;
+            const aadhaarCard = document.getElementById('aadhaarCard').value;
+            const workerId = document.getElementById('workerId').value;
+
+            // Validate passwords match
+            if (password !== confirmPassword) {
+                showError("Passwords don't match!");
+                return;
+            }
+
+            // Validate PAN format (simple)
+            if (!/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(panCard)) {
+                showError("Invalid PAN format! Should be like ABCDE1234F");
+                return;
+            }
+
+            // Validate Aadhaar
+            if (!/^\d{12}$/.test(aadhaarCard)) {
+                showError("Aadhaar must be 12 digits");
+                return;
+            }
+
+            const userData = {
+                firstName,
+                lastName,
+                age: parseInt(age),
+                email,
+                password,
+                bankAccount,
+                panCard,
+                aadhaarCard,
+                workerId
+            };
+
+            try {
+                const response = await fetch('/api/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(userData)
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // Show success message
+                    const successMsg = document.getElementById('successMessage');
+                    successMsg.classList.add('show');
+                    
+                    // Hide error message if visible
+                    document.getElementById('errorMessage').classList.remove('show');
+                    
+                    // Store registration info
+                    sessionStorage.setItem('registrationComplete', 'true');
+                    
+                    // Redirect to login after 3 seconds
+                    setTimeout(() => {
+                        window.location.href = 'login.html';
+                    }, 3000);
+                } else {
+                    showError(data.error || 'Registration failed');
+                }
+            } catch (error) {
+                // For demo purposes, simulate successful registration
+                console.log('Demo mode: Registration successful');
+                
+                // Show success message
+                const successMsg = document.getElementById('successMessage');
+                successMsg.classList.add('show');
+                
+                // Redirect to login after 3 seconds
+                setTimeout(() => {
+                    window.location.href = 'login.html';
+                }, 3000);
+            }
+        }
+
+        function showError(message) {
+            const errorMsg = document.getElementById('errorMessage');
+            errorMsg.textContent = '❌ ' + message;
+            errorMsg.classList.add('show');
+            
+            setTimeout(() => {
+                errorMsg.classList.remove('show');
+            }, 5000);
+        }
+    </script>
+</body>
+</html>
