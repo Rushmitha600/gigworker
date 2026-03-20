@@ -227,23 +227,27 @@ def chat():
 
     return jsonify({"response": "Ask about plans, weather, claims 😊"})
 
-# ==================== RUN ====================
+# ==================== HEALTH CHECK ====================
 
-def open_browser(): 
-    """Open browser after server starts""" 
-    webbrowser.open('http://127.0.0.1:5000') 
+@app.route('/api/health', methods=['GET'])
+def health():
+    return jsonify({"status": "ok", "message": "GigSuraksha AI Backend is running!"})
 
-if __name__ == '__main__': 
-    print("=" * 60) 
-    print("🚀 GigSuraksha AI - Server Started Successfully") 
-    print("=" * 60) 
-    print("\n📍 API Key loaded:", API_KEY[:5] + "..." + API_KEY[-5:]) 
-    print("\n🌐 Open this link in your browser to use the app:") 
-    print("👉 http://127.0.0.1:5000") 
-    print("\n⚠️ Browser will NOT open automatically.") 
-    print("Click the link above to access the application.") 
-    print("=" * 60) 
-    
-    app.run(debug=True, port=5000)
-
+# ==================== FOR VERCEL ====================
+# This line is CRITICAL for Vercel
 app = app
+
+# IMPORTANT: Comment out the local server code for Vercel
+# if __name__ == '__main__': 
+#     print("=" * 60) 
+#     print("🚀 GigSuraksha AI - Server Started Successfully") 
+#     print("=" * 60) 
+#     print("\n📍 API Key loaded:", API_KEY[:5] + "..." + API_KEY[-5:]) 
+#     print("\n🌐 Open this link in your browser to use the app:") 
+#     print("👉 http://127.0.0.1:5000") 
+#     print("\n⚠️ Browser will NOT open automatically.") 
+#     print("Click the link above to access the application.") 
+#     print("=" * 60) 
+#     
+#     app.run(debug=True, port=5000)
+    app.run(debug=True, port=5000)
