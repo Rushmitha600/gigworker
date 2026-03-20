@@ -188,8 +188,15 @@ def get_weather(city):
         "city": weather['city'],
         "temperature": weather['temp'],
         "condition": weather['condition'],
+        "humidity": weather['humidity'],       # ✅ add this
+        "wind_speed": weather['wind_speed'],   # ✅ add this
         "risk_score": risk_score,
-        "risk_level": risk_level
+        "risk_level": risk_level,
+        "precautions": [                       # ✅ add this
+        "Stay hydrated 💧",
+        "Avoid extreme weather ☀️🌧️",
+        "Take breaks during work 🛑"
+        ]
     })
 
 # ==================== LOCATIONS ====================
