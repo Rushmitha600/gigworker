@@ -243,7 +243,7 @@ def health():
 
 # ==================== LOCATIONS WEATHER ====================
 
-@app.route('/api/locations/weather', methods=['GET'])
+@app.route('/api/locations/weather', methods=['POST'])
 def get_locations_weather():
     locations_data = load_user_locations()
     locations = locations_data.get("locations", [])
