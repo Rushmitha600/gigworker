@@ -12,8 +12,8 @@ CORS(app)
 
 # ==================== CONFIG ====================
 API_KEY = "bb2d87b40339704b46f88cfc9c6782fd"
-USER_LOCATIONS_FILE = "user_locations.json"
-USERS_FILE = "users.json"
+USER_LOCATIONS_FILE = "/tmp/user_locations.json"
+USERS_FILE = "/tmp/users.json"
 
 # ==================== USER MANAGEMENT ====================
 def load_users():
