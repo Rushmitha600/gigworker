@@ -108,34 +108,34 @@ function loadTheme() {
 // ==================== LOCATION FUNCTIONS ====================
 function checkUserLocations() {
     console.log('Checking user locations...');
-    
-    const hasLocations = localStorage.getItem('userLocations');
-    
-    if (hasLocations) {
-        try {
-            userLocations = JSON.parse(hasLocations);
-            document.getElementById('locationModal').style.display = 'none';
-            document.getElementById('appContainer').style.display = 'block';
-            
-            // Show chatbot only on home page initially
-            const chatbot = document.getElementById('chatbotWidget');
-            if (chatbot) {
-                chatbot.style.display = 'block'; // Home page is active by default
+
+    // Fetch saved locations from backend
+    fetch(`${API_URL}/api/locations`)
+        .then(res => res.json())
+        .then(data => {
+            userLocations = data.locations || [];
+
+            if (!userLocations || userLocations.length === 0) {
+                showLocationModal();
+            } else {
+                // Hide modal & show app
+                document.getElementById('locationModal').style.display = 'none';
+                document.getElementById('appContainer').style.display = 'block';
+                document.getElementById('chatbotWidget').style.display = 'block';
+
+                // Fill settings inputs
+                if (userLocations[0]) document.getElementById('settings-location1').value = userLocations[0];
+                if (userLocations[1]) document.getElementById('settings-location2').value = userLocations[1];
+                if (userLocations[2]) document.getElementById('settings-location3').value = userLocations[2];
+
+                // Fetch weather for saved locations
+                loadSavedLocationsWeather();
             }
-            
-            // Update settings locations
-            if (userLocations[0]) document.getElementById('settings-location1').value = userLocations[0];
-            if (userLocations[1]) document.getElementById('settings-location2').value = userLocations[1];
-            if (userLocations[2]) document.getElementById('settings-location3').value = userLocations[2];
-            
-            loadAppData();
-        } catch (e) {
-            console.error('Error parsing locations:', e);
+        })
+        .catch(err => {
+            console.error('Error fetching user locations:', err);
             showLocationModal();
-        }
-    } else {
-        showLocationModal();
-    }
+        });
 }
 
 function showLocationModal() {
