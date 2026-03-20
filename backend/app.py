@@ -1,4 +1,5 @@
 from flask import Flask, request, jsonify, send_from_directory
+from weather_api import init_weather_api, get_weather, calculate_risk, get_precautions
 from flask_cors import CORS
 import requests
 from datetime import datetime
@@ -10,10 +11,13 @@ import threading
 app = Flask(__name__, static_folder='../frontend', static_url_path='')
 CORS(app)
 
+
+
 # ==================== CONFIG ====================
 API_KEY = "bb2d87b40339704b46f88cfc9c6782fd"
-USER_LOCATIONS_FILE = "/tmp/user_locations.json"
-USERS_FILE = "/tmp/users.json"
+USER_LOCATIONS_FILE = "./user_locations.json"
+USERS_FILE = "./users.json"
+init_weather_api(API_KEY)
 
 # ==================== USER MANAGEMENT ====================
 def load_users():
@@ -84,13 +88,27 @@ INSURANCE_PLANS = [
 ]
 
 # ==================== WEATHER ====================
+# ==================== WEATHER ====================
 def get_real_weather(city):
     try:
-        url = f"https://api.openweathermap.org/data/2.5/weather?q={city},IN&units=metric&appid={API_KEY}"
-        response = requests.get(url, timeout=5)
-
+        # Clean the city name
+        city_clean = city.strip()
+        
+        # Try with country code IN first
+        url = f"https://api.openweathermap.org/data/2.5/weather?q={city_clean},IN&units=metric&appid={API_KEY}"
+        print(f"🌤️ Fetching weather for: {city_clean}")  # Debug log
+        
+        response = requests.get(url, timeout=10)
+        
+        # If city with IN fails, try without country code
+        if response.status_code == 404:
+            url = f"https://api.openweathermap.org/data/2.5/weather?q={city_clean}&units=metric&appid={API_KEY}"
+            response = requests.get(url, timeout=10)
+        
         if response.status_code == 200:
             data = response.json()
+            print(f"✅ Weather found for: {data['name']}")  # Debug log
+            
             return {
                 "success": True,
                 "temp": round(data['main']['temp']),
@@ -101,10 +119,15 @@ def get_real_weather(city):
                 "wind_speed": round(data['wind']['speed'] * 3.6, 1),
                 "city": data['name']
             }
+        elif response.status_code == 401:
+            print(f"❌ API Key Invalid: {response.status_code}")
+            return {"success": False, "error": "Weather API key is invalid. Please check."}
         else:
-            return {"success": False, "error": "City not found"}
-
+            print(f"❌ Weather API error for {city}: {response.status_code}")
+            return {"success": False, "error": f"City '{city}' not found"}
+            
     except Exception as e:
+        print(f"❌ Exception in get_real_weather: {str(e)}")
         return {"success": False, "error": str(e)}
 
 def calculate_risk(weather_data):
@@ -175,28 +198,39 @@ def login():
 # ==================== WEATHER ====================
 
 @app.route('/api/weather/<city>', methods=['GET'])
-def get_weather(city):
+def get_weather_route(city):
+    print(f"🌤️ Weather requested for: {city}")
     weather = get_real_weather(city)
 
     if not weather['success']:
         return jsonify(weather)
 
     risk_score, risk_level = calculate_risk(weather)
+    
+    # Generate precautions
+    precautions = [
+        "Stay hydrated 💧",
+        "Avoid extreme weather ☀️🌧️",
+        "Take breaks during work 🛑"
+    ]
+    
+    if weather['temp'] > 35:
+        precautions.insert(0, "🔥 Heat alert! Drink plenty of water")
+    if 'rain' in weather['condition'].lower():
+        precautions.insert(0, "☔ Rain detected! Carry umbrella")
+    if weather['wind_speed'] > 20:
+        precautions.insert(0, "💨 Strong winds! Drive carefully")
 
     return jsonify({
         "success": True,
         "city": weather['city'],
         "temperature": weather['temp'],
         "condition": weather['condition'],
-        "humidity": weather['humidity'],       # ✅ add this
-        "wind_speed": weather['wind_speed'],   # ✅ add this
+        "humidity": weather['humidity'],
+        "wind_speed": weather['wind_speed'],
         "risk_score": risk_score,
         "risk_level": risk_level,
-        "precautions": [                       # ✅ add this
-        "Stay hydrated 💧",
-        "Avoid extreme weather ☀️🌧️",
-        "Take breaks during work 🛑"
-        ]
+        "precautions": precautions
     })
 
 # ==================== LOCATIONS ====================
@@ -242,41 +276,58 @@ def health():
 
 
 # ==================== LOCATIONS WEATHER ====================
-
 @app.route('/api/locations/weather', methods=['POST'])
 def get_locations_weather():
-    locations_data = load_user_locations()
-    locations = locations_data.get("locations", [])
-
-    results = []
-    for city in locations:
-        weather = get_real_weather(city)
-        if weather.get("success"):
-            risk_score, risk_level = calculate_risk(weather)
-            results.append({
-                "city": weather["city"],
-                "temperature": weather["temp"],
-                "condition": weather["condition"],
-                "humidity": weather["humidity"],
-                "wind_speed": weather["wind_speed"],
-                "risk_score": risk_score,
-                "risk_level": risk_level,
-                "precautions": [
+    try:
+        data = request.json
+        locations = data.get('locations', [])
+        print(f"📍 Getting weather for locations: {locations}")
+        
+        results = []
+        for city in locations:
+            # Call get_real_weather directly (not get_weather which might be different)
+            weather = get_real_weather(city)
+            
+            if weather.get("success"):
+                risk_score, risk_level = calculate_risk(weather)
+                precautions = [
                     "Stay hydrated 💧",
                     "Avoid extreme weather ☀️🌧️",
                     "Take breaks during work 🛑"
-                ],
-                "success": True
-            })
-        else:
-            results.append({
-                "city": city,
-                "success": False,
-                "error": weather.get("error", "Weather data not available")
-            })
-
-    return jsonify(results)
-
+                ]
+                
+                # Add condition-specific precautions
+                if weather['temp'] > 35:
+                    precautions.insert(0, "🔥 Heat alert! Drink plenty of water")
+                if 'rain' in weather['condition'].lower():
+                    precautions.insert(0, "☔ Rain detected! Carry umbrella")
+                if weather['wind_speed'] > 20:
+                    precautions.insert(0, "💨 Strong winds! Drive carefully")
+                
+                results.append({
+                    "city": weather["city"],
+                    "temperature": weather["temp"],
+                    "condition": weather["condition"],
+                    "humidity": weather["humidity"],
+                    "wind_speed": weather["wind_speed"],
+                    "risk_score": risk_score,
+                    "risk_level": risk_level,
+                    "precautions": precautions,
+                    "success": True
+                })
+            else:
+                print(f"❌ Weather failed for {city}: {weather.get('error')}")
+                results.append({
+                    "city": city,
+                    "success": False,
+                    "error": weather.get("error", "Weather data not available")
+                })
+        
+        return jsonify(results)
+        
+    except Exception as e:
+        print(f"❌ Error in get_locations_weather: {str(e)}")
+        return jsonify([{"success": False, "error": str(e)}])
 # ==================== FOR VERCEL ====================
 # This line is CRITICAL for Vercel
 app = app
