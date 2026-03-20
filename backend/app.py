@@ -240,6 +240,43 @@ def chat():
 def health():
     return jsonify({"status": "ok", "message": "GigSuraksha AI Backend is running!"})
 
+
+# ==================== LOCATIONS WEATHER ====================
+
+@app.route('/api/locations/weather', methods=['GET'])
+def get_locations_weather():
+    locations_data = load_user_locations()
+    locations = locations_data.get("locations", [])
+
+    results = []
+    for city in locations:
+        weather = get_real_weather(city)
+        if weather.get("success"):
+            risk_score, risk_level = calculate_risk(weather)
+            results.append({
+                "city": weather["city"],
+                "temperature": weather["temp"],
+                "condition": weather["condition"],
+                "humidity": weather["humidity"],
+                "wind_speed": weather["wind_speed"],
+                "risk_score": risk_score,
+                "risk_level": risk_level,
+                "precautions": [
+                    "Stay hydrated 💧",
+                    "Avoid extreme weather ☀️🌧️",
+                    "Take breaks during work 🛑"
+                ],
+                "success": True
+            })
+        else:
+            results.append({
+                "city": city,
+                "success": False,
+                "error": weather.get("error", "Weather data not available")
+            })
+
+    return jsonify(results)
+
 # ==================== FOR VERCEL ====================
 # This line is CRITICAL for Vercel
 app = app
