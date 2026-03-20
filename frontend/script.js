@@ -1,5 +1,5 @@
 // ==================== API CONFIG ====================
-const API_URL = 'https://gigworker-1.onrender.com'; // Update with your backend URL
+const API_URL = ''; // Update with your backend URL
 
 // ==================== APP STATE ====================
 let userLocations = [];
