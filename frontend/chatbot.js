@@ -163,8 +163,8 @@ function sendMessage() {
         return;
     }
 
-    // Otherwise call backend AI
-    fetch("http://localhost:5000/api/chat", {
+    // Otherwise call backend AI - FIXED: removed localhost
+    fetch("/api/chat", {
         method: "POST",
         headers: {
             "Content-Type": "application/json"
@@ -197,7 +197,8 @@ function sendQuickQuestion(question) {
         return;
     }
 
-    fetch("http://localhost:5000/api/chat", {
+    // FIXED: removed localhost
+    fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: question })

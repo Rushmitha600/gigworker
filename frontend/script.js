@@ -1,5 +1,5 @@
 // ==================== API CONFIG ====================
-const API_URL = 'https://gigworker-7zwt.onrender.com'; // Update with your backend URL
+const API_URL = 'https://gigworker-1.onrender.com'; // Update with your backend URL
 
 // ==================== APP STATE ====================
 let userLocations = [];
@@ -305,6 +305,7 @@ function setupEventListeners() {
 
 // ==================== WEATHER FUNCTIONS ====================
 // ==================== HOME PAGE WEATHER - REAL DATA ONLY ====================
+// ==================== HOME PAGE WEATHER - FIXED VERSION ====================
 function loadSavedLocationsWeather() {
     const container = document.getElementById('savedLocationsWeather');
     if (!container) return;
@@ -314,79 +315,90 @@ function loadSavedLocationsWeather() {
         return;
     }
     
-    container.innerHTML = '<div class="loading">Loading REAL weather data for your locations...</div>';
+    container.innerHTML = '<div class="loading">Loading weather data for your locations...</div>';
     
-    // Fetch REAL weather for each saved location from API
-    fetch(`${API_URL}/api/locations/weather`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ locations: userLocations })
-    })
-    .then(res => res.json())
-    .then(locations => {
-        if (!locations || locations.length === 0) {
-            container.innerHTML = '<div class="loading">Could not load weather data. Please try again.</div>';
-            return;
-        }
-        
-        let html = '';
-        let highRiskCount = 0;
-        
-        locations.forEach((loc, index) => {
-            // Check if location has error
-            if (loc.error) {
-                html += `
+    // Instead of calling API, just fetch each location directly
+    // This is a temporary fix - let's get weather for each city one by one
+    
+    let locationsHtml = '';
+    let promises = [];
+    
+    userLocations.forEach(city => {
+        // Create a promise for each city
+        const promise = fetch(`${API_URL}/api/weather/${encodeURIComponent(city)}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    const riskClass = data.risk_score > 60 ? 'risk-high' : 
+                                    data.risk_score > 40 ? 'risk-medium' : 'risk-low';
+                    
+                    return `
+                        <div class="location-weather-card">
+                            <div class="location-header">
+                                <h3>${data.city}</h3>
+                            </div>
+                            <div class="weather-temp-large">${data.temperature}°C</div>
+                            <div class="weather-condition">${data.condition}</div>
+                            <span class="risk-badge ${riskClass}">${data.risk_level} Risk (${data.risk_score})</span>
+                            
+                            <div class="weather-details">
+                                <div class="weather-detail-item">
+                                    <span>💧 Humidity</span>
+                                    <strong>${data.humidity}%</strong>
+                                </div>
+                                <div class="weather-detail-item">
+                                    <span>💨 Wind</span>
+                                    <strong>${data.wind_speed} km/h</strong>
+                                </div>
+                            </div>
+                            
+                            <div class="precautions">
+                                <h4>🛡️ Today's Precautions</h4>
+                                <ul class="precautions-list">
+                                    ${data.precautions.map(p => `<li>${p}</li>`).join('')}
+                                </ul>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    return `
+                        <div class="location-weather-card">
+                            <div class="location-header">
+                                <h3>${city}</h3>
+                            </div>
+                            <div class="error-message" style="color: #f56565; padding: 20px; text-align: center;">
+                                ❌ Weather not available for ${city}<br>
+                                <small>${data.error || 'Please check city name'}</small>
+                            </div>
+                        </div>
+                    `;
+                }
+            })
+            .catch(err => {
+                console.error(`Error fetching ${city}:`, err);
+                return `
                     <div class="location-weather-card">
                         <div class="location-header">
-                            <h3>${loc.city}</h3>
+                            <h3>${city}</h3>
                         </div>
                         <div class="error-message" style="color: #f56565; padding: 20px; text-align: center;">
-                            ❌ Weather not available for ${loc.city}
+                            ❌ Error loading weather for ${city}
                         </div>
                     </div>
                 `;
-                return;
-            }
-            
-            const riskClass = loc.risk_score > 60 ? 'risk-high' : 
-                            loc.risk_score > 40 ? 'risk-medium' : 'risk-low';
-            
-            if (loc.risk_score > 60) highRiskCount++;
-            
-            html += `
-                <div class="location-weather-card ${index === 0 ? 'primary' : ''}">
-                    <div class="location-header">
-                        <h3>${loc.city}</h3>
-                        ${index === 0 ? '<span class="primary-badge">PRIMARY</span>' : ''}
-                    </div>
-                    <div class="weather-temp-large">${loc.temperature}°C</div>
-                    <div class="weather-condition">${loc.condition}</div>
-                    <span class="risk-badge ${riskClass}">${loc.risk_level} Risk (${loc.risk_score})</span>
-                    
-                    <div class="weather-details">
-                        <div class="weather-detail-item">
-                            <span>💧 Humidity</span>
-                            <strong>${loc.humidity}%</strong>
-                        </div>
-                        <div class="weather-detail-item">
-                            <span>💨 Wind</span>
-                            <strong>${loc.wind_speed} km/h</strong>
-                        </div>
-                    </div>
-                    
-                    <div class="precautions">
-                        <h4>🛡️ Today's Precautions</h4>
-                        <ul class="precautions-list">
-                            ${loc.precautions.map(p => `<li>${p}</li>`).join('')}
-                        </ul>
-                    </div>
-                </div>
-            `;
-        });
+            });
         
-        container.innerHTML = html;
+        promises.push(promise);
+    });
+    
+    // Wait for all promises to resolve
+    Promise.all(promises).then(results => {
+        container.innerHTML = results.join('');
         
-        // Update risk summary
+        // Count high risk locations
+        const highRiskCount = Array.from(document.querySelectorAll('.risk-badge'))
+            .filter(badge => badge.textContent.includes('High')).length;
+        
         const riskSummary = document.getElementById('riskSummary');
         if (riskSummary) {
             if (highRiskCount > 0) {
@@ -401,10 +413,6 @@ function loadSavedLocationsWeather() {
                 `;
             }
         }
-    })
-    .catch(err => {
-        console.error('Error loading weather:', err);
-        container.innerHTML = '<div class="loading error">❌ Error loading weather data. Please try again.</div>';
     });
 }
 
