@@ -224,7 +224,7 @@ function updateUserLocations() {
     const loc2 = document.getElementById('settings-location2').value.trim();
     const loc3 = document.getElementById('settings-location3').value.trim();
     
-    
+
     const locations = [];
     if (loc1) locations.push(loc1);
     if (loc2) locations.push(loc2);
@@ -341,7 +341,6 @@ function showSection(section) {
 function setupEventListeners() {
     console.log('Setting up event listeners...');
     
-    // Theme toggle - already fixed in fixThemeToggle()
     
     // Weather search
     const searchBtn = document.querySelector('.search-btn');
