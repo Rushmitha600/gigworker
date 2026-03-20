@@ -1,5 +1,5 @@
 // ==================== API CONFIG ====================
-const API_URL = 'https://gigworker-2g86.vercel.app/';
+const API_URL = 'https://gigworker-7zwt.onrender.com'; // Update with your backend URL
 
 // ==================== APP STATE ====================
 let userLocations = [];
