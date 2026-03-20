@@ -109,11 +109,32 @@ function loadTheme() {
 function checkUserLocations() {
     console.log('Checking user locations...');
 
-    // Fetch saved locations from backend
+    // First check localStorage
+    const saved = localStorage.getItem('userLocations');
+    if (saved) {
+        userLocations = JSON.parse(saved);
+    }
+
+    // Then sync with backend
     fetch(`${API_URL}/api/locations`)
         .then(res => res.json())
         .then(data => {
-            userLocations = data.locations || [];
+            const backendLocations = data.locations || [];
+            
+            // If backend has locations but localStorage doesn't
+            if (backendLocations.length > 0 && (!userLocations || userLocations.length === 0)) {
+                userLocations = backendLocations;
+                localStorage.setItem('userLocations', JSON.stringify(backendLocations));
+            }
+            // If localStorage has locations but backend doesn't
+            else if (userLocations.length > 0 && backendLocations.length === 0) {
+                // Save to backend
+                fetch(`${API_URL}/api/locations`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ locations: userLocations })
+                });
+            }
 
             if (!userLocations || userLocations.length === 0) {
                 showLocationModal();
@@ -133,8 +154,16 @@ function checkUserLocations() {
             }
         })
         .catch(err => {
-            console.error('Error fetching user locations:', err);
-            showLocationModal();
+            console.error('Error fetching user locations from backend:', err);
+            // If backend fails, use localStorage
+            if (userLocations && userLocations.length > 0) {
+                document.getElementById('locationModal').style.display = 'none';
+                document.getElementById('appContainer').style.display = 'block';
+                document.getElementById('chatbotWidget').style.display = 'block';
+                loadSavedLocationsWeather();
+            } else {
+                showLocationModal();
+            }
         });
 }
 
@@ -157,9 +186,27 @@ function saveUserLocations() {
         return;
     }
     
+    // LocalStorage lo save
     localStorage.setItem('userLocations', JSON.stringify(locations));
     userLocations = locations;
     
+    // ✅ IMPORTANT: Backend ki kuda save chey
+    fetch(`${API_URL}/api/locations`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ locations: locations })
+    })
+    .then(res => res.json())
+    .then(data => {
+        console.log('✅ Locations saved to backend:', data);
+    })
+    .catch(err => {
+        console.error('❌ Error saving locations to backend:', err);
+    });
+    
+    // UI updates
     document.getElementById('locationModal').style.display = 'none';
     document.getElementById('appContainer').style.display = 'block';
     document.getElementById('chatbotWidget').style.display = 'block';
@@ -187,10 +234,28 @@ function updateUserLocations() {
         return;
     }
     
+    // LocalStorage lo save
     localStorage.setItem('userLocations', JSON.stringify(locations));
     userLocations = locations;
-    loadSavedLocationsWeather();
-    alert('Locations updated successfully!');
+    
+    // ✅ Backend ki save chey
+    fetch(`${API_URL}/api/locations`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ locations: locations })
+    })
+    .then(res => res.json())
+    .then(data => {
+        console.log('✅ Locations updated in backend:', data);
+        loadSavedLocationsWeather();
+        alert('Locations updated successfully!');
+    })
+    .catch(err => {
+        console.error('❌ Error updating locations in backend:', err);
+        alert('Locations updated locally but failed to save to server!');
+    });
 }
 
 // ==================== NAVIGATION FUNCTIONS ====================
