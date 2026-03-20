@@ -1,5 +1,5 @@
 // ==================== API CONFIG ====================
-const API_URL = '';
+const API_URL = 'https://gigworker-2g86.vercel.app/';
 
 // ==================== APP STATE ====================
 let userLocations = [];
